@@ -5,7 +5,7 @@
 }
 
 body {
-    background-color: rgb(193,216,240);
+    background-color:rgb(143, 192, 169) ;
   }
 
 #plan{
@@ -87,8 +87,8 @@ li{
     width: 250px;
     height: 40px;
     font-size: 20px;
-    background-color: rgb(70,99,172);
-    color: rgb(210,222,235);
+    background-color:rgb(36,62,54);
+    color: rgb(250,243,221);
     border-radius: 5px;
 }
 #button2{
