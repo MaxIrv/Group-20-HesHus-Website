@@ -1,1 +1,8 @@
 com.skloch.game
+com.skloch.game.events
+com.skloch.game.events.dialoguebox
+com.skloch.game.interfaces
+com.skloch.game.mocks
+com.skloch.game.tests
+com.skloch.game.tests.components
+com.skloch.game.tests.events

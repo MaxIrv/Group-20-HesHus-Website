@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.skloch.game"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.skloch.game"},{"l":"com.skloch.game.events"},{"l":"com.skloch.game.events.dialoguebox"},{"l":"com.skloch.game.interfaces"},{"l":"com.skloch.game.mocks"},{"l":"com.skloch.game.tests"},{"l":"com.skloch.game.tests.components"},{"l":"com.skloch.game.tests.events"}];updateSearchResults();
