@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameLogic.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">GameLogic.java</span></div><h1>GameLogic.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.MapProperties;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.ArrayMap;
+import com.skloch.game.events.CameraPositionEvent;
+import com.skloch.game.events.DayUpdatedEvent;
+import com.skloch.game.events.EnergyUpdatedEvent;
+import com.skloch.game.events.EventBus;
+import com.skloch.game.events.GameStatsUpdatedEvent;
+import com.skloch.game.events.MapSwitchEvent;
+import com.skloch.game.events.TimeUpdatedEvent;
+import com.skloch.game.events.dialoguebox.DialogueScrollEvent;
+import com.skloch.game.interfaces.EventManagerInterface;
+import com.skloch.game.interfaces.GameLogicInterface;
+import com.skloch.game.interfaces.GameScreenProvider;
+import com.skloch.game.interfaces.PlayerInterface;
+
+/**
+ * A class that handles the game logic, including the player, time, energy, and map switching. This
+ * class is called by the GameScreen class to update the game.
+ */
+public class GameLogic implements GameLogicInterface {
+  private final HustleGame game;
+  private final GameScreenProvider gameScreen;
+  private final EventManagerInterface eventManager;
+  private final EventBus eventBus;
+  private final PlayerInterface player;
+<span class="fc" id="L33">  private int energy = 100;</span>
+<span class="fc" id="L34">  private int hoursStudied = 0;</span>
+<span class="fc" id="L35">  private int hoursRecreational = 0;</span>
+<span class="fc" id="L36">  private int hoursSlept = 0;</span>
+<span class="fc" id="L37">  private int mealsEaten = 0;</span>
+  private int studyStreakCounter;
+  private int bookWormCounter;
+  private int eatStreakCounter;
+  private int funStreakCounter;
+  private int noSleepCounter;
+
+  private float daySeconds;
+<span class="fc" id="L45">  private int day = 1;</span>
+<span class="fc" id="L46">  private boolean sleeping = false;</span>
+<span class="fc" id="L47">  private String currentMap = &quot;campus&quot;;</span>
+
+  /**
+   * Constructor for the GameLogic class. Sets up the player, time, and event manager.
+   *
+   * @param game         The game object
+   * @param gameScreen   The GameScreenProvider object
+   * @param avatarChoice The avatar choice
+   * @param eventBus     The event bus
+   */
+  public GameLogic(
+<span class="fc" id="L58">      HustleGame game, GameScreenProvider gameScreen, int avatarChoice, EventBus eventBus) {</span>
+<span class="fc" id="L59">    this.game = game;</span>
+<span class="fc" id="L60">    this.gameScreen = gameScreen;</span>
+<span class="fc" id="L61">    this.eventManager = new EventManager(this, eventBus);</span>
+<span class="fc" id="L62">    this.eventBus = eventBus;</span>
+
+<span class="fc" id="L64">    hoursStudied = hoursRecreational = hoursSlept = mealsEaten = 0;</span>
+
+    // Create a player class
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (avatarChoice == 1) {</span>
+<span class="fc" id="L68">      player = new Player(&quot;avatar1&quot;);</span>
+    } else {
+<span class="nc" id="L70">      player = new Player(&quot;avatar2&quot;);</span>
+    }
+
+    // Set initial time
+<span class="fc" id="L74">    daySeconds = (8 * 60); // 8:00 am</span>
+
+    // Start music
+<span class="fc" id="L77">    game.soundManager.playOverworldMusic();</span>
+<span class="fc" id="L78">  }</span>
+
+  /**
+   * Update the game logic, including the player, time, and sound timers.
+   *
+   * @param delta The time in seconds since the last frame
+   */
+  @Override
+  public void update(float delta) {
+    // Update sound timers
+<span class="nc" id="L88">    game.soundManager.processTimers(delta);</span>
+
+    // Increment the time and possibly day
+<span class="nc bnc" id="L91" title="All 4 branches missed.">    if (!gameScreen.isEscapeMenuVisible() &amp;&amp; !sleeping) {</span>
+<span class="nc" id="L92">      passTime(Gdx.graphics.getDeltaTime());</span>
+    }
+
+<span class="nc" id="L95">    eventBus.publish(new TimeUpdatedEvent(daySeconds));</span>
+
+    // Freeze the player's movement for this frame if any menus are visible
+<span class="nc" id="L98">    player.setFrozen(</span>
+<span class="nc bnc" id="L99" title="All 6 branches missed.">        gameScreen.isEscapeMenuVisible() || gameScreen.isDialogueBoxVisible() || sleeping);</span>
+
+<span class="nc" id="L101">    eventBus.publish(new DialogueScrollEvent(0.8f));</span>
+
+    // Let the player move to keyboard presses if not frozen
+    // Player.move() handles player collision
+    // Also play a footstep sound if they are moving
+<span class="nc" id="L106">    player.move(delta);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (player.isMoving()) {</span>
+<span class="nc" id="L108">      game.soundManager.playFootstep();</span>
+    } else {
+<span class="nc" id="L110">      game.soundManager.stopFootstep();</span>
+    }
+<span class="nc" id="L112">  }</span>
+
+  /**
+   * Load and set up the map. Passes collidable objects to the player.
+   *
+   * @param firstLoad whether this is the first map being loaded, determines whether to place the
+   *                  player at the spawn or respawn location.
+   */
+  @Override
+  public void setupMap(boolean firstLoad, GameMap gameMap) {
+    // Get the dimensions of the top layer
+<span class="nc" id="L123">    TiledMapTileLayer layer0 = (TiledMapTileLayer) gameMap.getLayers().get(0);</span>
+    // Set the player to the middle of the map
+<span class="nc" id="L125">    player.setPos(</span>
+<span class="nc" id="L126">        layer0.getWidth() * gameMap.mapScale / 2f, layer0.getHeight() * gameMap.mapScale / 2f);</span>
+    // Publish event to update camera position to player position
+<span class="nc" id="L128">    eventBus.publish(</span>
+<span class="nc" id="L129">        new CameraPositionEvent(new Vector3(player.getCentreX(), player.getCentreY(), 0)));</span>
+
+    // Clear collidables from the player, as they may be from a different map.
+<span class="nc" id="L132">    player.clearCollidables();</span>
+
+<span class="nc" id="L134">    float unitScale = gameMap.mapScale / gameMap.mapSquareSize;</span>
+
+    // Give objects to player
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    for (int layer : gameMap.objectLayers) {</span>
+      // Get all objects on the layer
+<span class="nc" id="L139">      MapObjects objects = gameMap.getLayers().get(layer).getObjects();</span>
+
+      // Loop through each, handing them to the player
+<span class="nc bnc" id="L142" title="All 2 branches missed.">      for (int i = 0; i &lt; objects.getCount(); i++) {</span>
+        // Get the properties of each object
+<span class="nc" id="L144">        MapProperties properties = objects.get(i).getProperties();</span>
+        // If this is the spawn object, move the player there and don't collide
+<span class="nc bnc" id="L146" title="All 4 branches missed.">        if ((properties.get(&quot;spawn&quot;) != null &amp;&amp; firstLoad)</span>
+<span class="nc bnc" id="L147" title="All 4 branches missed.">            || (properties.get(&quot;respawn&quot;) != null &amp;&amp; !firstLoad)) {</span>
+<span class="nc" id="L148">          player.setPos(</span>
+<span class="nc" id="L149">              ((float) properties.get(&quot;x&quot;)) * unitScale, ((float) properties.get(&quot;y&quot;)) * unitScale);</span>
+<span class="nc" id="L150">          eventBus.publish(new CameraPositionEvent(player.getPosAsVec3()));</span>
+<span class="nc bnc" id="L151" title="All 4 branches missed.">        } else if (properties.get(&quot;spawn&quot;) == null &amp;&amp; properties.get(&quot;respawn&quot;) == null) {</span>
+          // If not a spawn point make collidable
+          // Make a new gameObject with these properties, passing along the scale the map is
+          // rendered
+          // at for accurate coordinates
+<span class="nc" id="L156">          player.addCollidable(new GameObject(properties, unitScale));</span>
+        }
+      }
+    }
+
+    // Set the player to not go outside the bounds of the map
+    // Assumes the bottom left corner of the map is at 0, 0
+<span class="nc" id="L163">    player.setBounds(</span>
+        new Rectangle(
+            0,
+            0,
+<span class="nc" id="L167">            gameMap.mapProperties.get(&quot;width&quot;, Integer.class) * gameMap.mapScale,</span>
+<span class="nc" id="L168">            gameMap.mapProperties.get(&quot;height&quot;, Integer.class) * gameMap.mapScale));</span>
+<span class="nc" id="L169">  }</span>
+
+  /**
+   * Switch from the current map to another map as specified by its asset path.
+   *
+   * @param mapName the name of the map one of &quot;town&quot; and &quot;campus&quot;
+   */
+  @Override
+  public void switchMap(String mapName) {
+<span class="nc" id="L178">    Gdx.app.log(&quot;GameLogic&quot;, &quot;Switching to map: &quot; + mapName);</span>
+<span class="nc" id="L179">    Gdx.app.log(&quot;GameLogic&quot;, &quot;Switching to map: &quot; + mapName);</span>
+    // If we are switching to the home map then set &quot;onHomeMap&quot; attribute
+<span class="nc" id="L181">    currentMap = mapName;</span>
+<span class="nc" id="L182">    gameScreen.getGameMap().switchMap(mapName);</span>
+<span class="nc" id="L183">    setupMap(false, gameScreen.getGameMap());</span>
+<span class="nc" id="L184">    eventBus.publish(new MapSwitchEvent(gameScreen.getGameMap()));</span>
+<span class="nc" id="L185">  }</span>
+
+  /**
+   * Get the map the player is currently on.
+   *
+   * @return the name of the current map.
+   */
+  @Override
+  public String getCurrentMap() {
+<span class="fc" id="L194">    return currentMap;</span>
+  }
+
+  /**
+   * Add a number of seconds to the time elapsed in the day.
+   *
+   * @param delta The time in seconds to add
+   */
+  @Override
+  public void passTime(float delta) {
+<span class="fc" id="L204">    daySeconds += delta;</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">    while (daySeconds &gt;= 1440) {</span>
+<span class="fc" id="L206">      daySeconds -= 1440;</span>
+<span class="fc" id="L207">      day += 1;</span>
+<span class="fc" id="L208">      Gdx.app.log(&quot;test&quot;, &quot;test&quot;);</span>
+<span class="fc" id="L209">      eventBus.publish(new DayUpdatedEvent(day));</span>
+    }
+
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">    if (day &gt;= 8) {</span>
+<span class="nc" id="L213">      gameOver();</span>
+    }
+<span class="fc" id="L215">  }</span>
+
+  /**
+   * Sets the player's energy level and updates the onscreen bar.
+   *
+   * @param energy An int between 0 and 100
+   */
+  @Override
+  public void setEnergy(int energy) {
+<span class="fc" id="L224">    this.energy = energy;</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">    if (this.energy &gt; 100) {</span>
+<span class="fc" id="L226">      this.energy = 100;</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">    } else if (this.energy &lt; 0) {</span>
+<span class="fc" id="L228">      this.energy = 0;</span>
+    }
+    // Update energy bar
+<span class="fc" id="L231">    eventBus.publish(new EnergyUpdatedEvent(this.energy));</span>
+<span class="fc" id="L232">  }</span>
+
+  @Override
+  public int getEnergy() {
+<span class="fc" id="L236">    return this.energy;</span>
+  }
+
+  /**
+   * Decreases the player's energy by a certain amount.
+   *
+   * @param energy The energy to decrement
+   */
+  @Override
+  public void decreaseEnergy(int energy) {
+<span class="fc" id="L246">    this.energy = this.energy - energy;</span>
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">    if (this.energy &lt; 0) {</span>
+<span class="nc" id="L248">      this.energy = 0;</span>
+    }
+    // Update energy bar
+<span class="fc" id="L251">    eventBus.publish(new EnergyUpdatedEvent(this.energy));</span>
+<span class="fc" id="L252">  }</span>
+
+  /**
+   * Adds an amount of hours studied to the total hours studied.
+   *
+   * @param hours The amount of hours to add
+   */
+  @Override
+  public void addStudyHours(int hours) {
+<span class="nc" id="L261">    hoursStudied += hours;</span>
+<span class="nc" id="L262">    updateStatsEvent();</span>
+<span class="nc" id="L263">  }</span>
+
+  /**
+   * Adds an amount of recreational hours to the total amount for the current day.
+   *
+   * @param hours The amount of hours to add
+   */
+  @Override
+  public void addRecreationalHours(int hours) {
+<span class="nc" id="L272">    hoursRecreational += hours;</span>
+    //        gameScreen.hoursRecreationalLabel.setText(String.format(&quot;Played for %d
+    // hours&quot;,hoursRecreational));
+<span class="nc" id="L275">  }</span>
+
+  /**
+   * Adds an amount of meals to the total number of meals.
+   */
+  @Override
+  public void addMeal() {
+<span class="nc" id="L282">    mealsEaten++;</span>
+<span class="nc" id="L283">    updateStatsEvent();</span>
+<span class="nc" id="L284">  }</span>
+
+  /**
+   * Gets the meal that should be served based on the time of day.
+   *
+   * @return Returns 'breakfast', 'lunch' or 'dinner' depending on the time of day
+   */
+  @Override
+  public String getMeal() {
+<span class="nc" id="L293">    int hours = Math.floorDiv((int) daySeconds, 60);</span>
+<span class="nc bnc" id="L294" title="All 4 branches missed.">    if (hours &gt;= 7 &amp;&amp; hours &lt;= 10) {</span>
+      // Breakfast between 7:00-10:59am
+<span class="nc" id="L296">      return &quot;breakfast&quot;;</span>
+<span class="nc bnc" id="L297" title="All 4 branches missed.">    } else if (hours &gt; 10 &amp;&amp; hours &lt;= 16) {</span>
+      // Lunch between 10:00am and 4:59pm
+<span class="nc" id="L299">      return &quot;lunch&quot;;</span>
+<span class="nc bnc" id="L300" title="All 4 branches missed.">    } else if (hours &gt; 16 &amp;&amp; hours &lt;= 21) {</span>
+      // Dinner served between 4:00pm and 9:59pm
+<span class="nc" id="L302">      return &quot;dinner&quot;;</span>
+    } else {
+      // Nothing is served between 10:00pm and 6:59am
+<span class="nc" id="L305">      return &quot;food&quot;;</span>
+    }
+  }
+
+  /**
+   * Returns a wake up message based on the time left until the exam.
+   *
+   * @return A wake up message based on the time left until the exam
+   */
+  @Override
+  public String getWakeUpMessage() {
+<span class="nc" id="L316">    int daysLeft = 8 - day;</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">    if (daysLeft != 1) {</span>
+<span class="nc" id="L318">      return String.format(</span>
+          &quot;You have %d days left until your exam!\nRemember to eat, &quot;
+              + &quot;study and have fun, but don't overwork yourself!&quot;,
+<span class="nc" id="L321">          daysLeft);</span>
+    } else {
+<span class="nc" id="L323">      return &quot;Your exam is tomorrow! I hope you've been studying! &quot;</span>
+          + &quot;Remember not to overwork yourself and get enough sleep!&quot;;
+    }
+  }
+
+  /**
+   * Sets the player to be sleeping or not.
+   *
+   * @param sleeping Sets the value of sleeping
+   */
+  @Override
+  public void setSleeping(boolean sleeping) {
+<span class="nc" id="L335">    this.sleeping = sleeping;</span>
+<span class="nc" id="L336">  }</span>
+
+  /**
+   * Checks if the player is sleeping.
+   *
+   * @return true if the player is sleeping
+   */
+  @Override
+  public boolean isSleeping() {
+<span class="nc" id="L345">    return sleeping;</span>
+  }
+
+  /**
+   * Increments the number of hours slept by a certain amount.
+   *
+   * @param hours Add this amount of hours to the total hours slept
+   */
+  @Override
+  public void addSleptHours(int hours) {
+<span class="nc" id="L355">    hoursSlept += hours;</span>
+<span class="nc" id="L356">    updateStatsEvent();</span>
+<span class="nc" id="L357">  }</span>
+
+  @Override
+  public float getSeconds() {
+<span class="fc" id="L361">    return daySeconds;</span>
+  }
+
+  @Override
+  public PlayerInterface getPlayer() {
+<span class="nc" id="L366">    return player;</span>
+  }
+
+  /**
+   * Ends the game, called at the end of the 7th day, switches to a screen that displays a score.
+   */
+  @Override
+  public void gameOver() {
+<span class="nc" id="L374">    game.setScreen(</span>
+        new GameOverScreen(game, hoursStudied, hoursRecreational, hoursSlept, mealsEaten,
+<span class="nc" id="L376">            getPlayerScore()));</span>
+<span class="nc" id="L377">  }</span>
+
+  // Getters commands
+  @Override
+  public int getMealsEaten() {
+<span class="nc" id="L382">    return mealsEaten;</span>
+  }
+
+  @Override
+  public int getHoursStudied() {
+<span class="nc" id="L387">    return hoursStudied;</span>
+  }
+
+  @Override
+  public int getHoursRecreational() {
+<span class="nc" id="L392">    return hoursRecreational;</span>
+  }
+
+  @Override
+  public int getHoursSlept() {
+<span class="nc" id="L397">    return hoursSlept;</span>
+  }
+
+  @Override
+  public int getDay() {
+<span class="fc" id="L402">    return day;</span>
+  }
+
+  @Override
+  public float getDaySeconds() {
+<span class="nc" id="L407">    return daySeconds;</span>
+  }
+
+  @Override
+  public EventManagerInterface getEventManager() {
+<span class="nc" id="L412">    return eventManager;</span>
+  }
+
+  @Override
+  public boolean isPlayerNearObject() {
+<span class="nc" id="L417">    return player.nearObject();</span>
+  }
+
+  @Override
+  public GameObject getPlayerClosestObject() {
+<span class="nc" id="L422">    return player.getClosestObject();</span>
+  }
+
+  /**
+   * Update the stats on the UI.
+   */
+  private void updateStatsEvent() {
+<span class="nc" id="L429">    eventBus.publish(</span>
+        new GameStatsUpdatedEvent(
+            daySeconds, day, hoursRecreational, hoursStudied, mealsEaten, hoursSlept));
+<span class="nc" id="L432">  }</span>
+
+  /**
+   * Get the player's score based on their performance in the game.
+   *
+   * @return The player's score as a percentage
+   */
+  public float getPlayerScore() {
+
+<span class="nc" id="L441">    ArrayMap&lt;String, int[]&gt; successRanges = new ArrayMap&lt;String, int[]&gt;();</span>
+
+<span class="nc" id="L443">    successRanges.put(&quot;rec&quot;, new int[] {7, 10});</span>
+<span class="nc" id="L444">    successRanges.put(&quot;study&quot;, new int[] {10, 21});</span>
+<span class="nc" id="L445">    successRanges.put(&quot;meals&quot;, new int[] {10, 26});</span>
+<span class="nc" id="L446">    successRanges.put(&quot;sleep&quot;, new int[] {30, 55});</span>
+
+
+    //  if target range for each thing rec, study, meals and sleep, then X points
+<span class="nc" id="L450">    float rawScore = 0;</span>
+
+<span class="nc bnc" id="L452" title="All 2 branches missed.">    if ((hoursRecreational &gt; successRanges.get(&quot;rec&quot;)[0])</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">        &amp;&amp; (hoursRecreational &lt; successRanges.get(&quot;rec&quot;)[1])) {</span>
+<span class="nc" id="L454">      rawScore += 1;</span>
+    }
+<span class="nc bnc" id="L456" title="All 2 branches missed.">    if (hoursStudied &gt; successRanges.get(&quot;study&quot;)[0]</span>
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        &amp;&amp; hoursStudied &lt; successRanges.get(&quot;study&quot;)[1]) {</span>
+<span class="nc" id="L458">      rawScore += 1;</span>
+    }
+<span class="nc bnc" id="L460" title="All 2 branches missed.">    if (hoursStudied &gt; successRanges.get(&quot;meals&quot;)[0]</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        &amp;&amp; hoursStudied &lt; successRanges.get(&quot;meals&quot;)[1]) {</span>
+<span class="nc" id="L462">      rawScore += 1;</span>
+    }
+<span class="nc bnc" id="L464" title="All 2 branches missed.">    if (hoursStudied &gt; successRanges.get(&quot;sleep&quot;)[0]</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        &amp;&amp; hoursStudied &lt; successRanges.get(&quot;sleep&quot;)[1]) {</span>
+<span class="nc" id="L466">      rawScore += 1;</span>
+    }
+
+
+    // Multiply by 1.3x
+<span class="nc bnc" id="L471" title="All 2 branches missed.">    if (game.allNighter.getAchieved()) {</span>
+<span class="nc" id="L472">      rawScore *= 1.2f;</span>
+    }
+<span class="nc bnc" id="L474" title="All 2 branches missed.">    if (game.bookWorm.getAchieved()) {</span>
+<span class="nc" id="L475">      rawScore *= 1.2f;</span>
+    }
+<span class="nc bnc" id="L477" title="All 2 branches missed.">    if (game.eatStreak.getAchieved()) {</span>
+<span class="nc" id="L478">      rawScore *= 1.2f;</span>
+    }
+<span class="nc bnc" id="L480" title="All 2 branches missed.">    if (game.funStreak.getAchieved()) {</span>
+<span class="nc" id="L481">      rawScore *= 1.2f;</span>
+    }
+<span class="nc bnc" id="L483" title="All 2 branches missed.">    if (game.studyStreak.getAchieved()) {</span>
+<span class="nc" id="L484">      rawScore *= 1.2f;</span>
+    }
+
+<span class="nc" id="L487">    float possibleScore = 4;</span>
+<span class="nc" id="L488">    float ratioScore = rawScore / possibleScore;</span>
+<span class="nc bnc" id="L489" title="All 2 branches missed.">    if (ratioScore &gt; 1) {</span>
+<span class="nc" id="L490">      ratioScore = 1;</span>
+    }
+<span class="nc" id="L492">    return ratioScore * 100;</span>
+  }
+
+  // Study Streak
+  public int getStudyStreakCounter() {
+<span class="nc" id="L497">    return this.studyStreakCounter;</span>
+  }
+
+  public void setStudyStreakCounter(int x) {
+<span class="nc" id="L501">    this.studyStreakCounter = x;</span>
+<span class="nc" id="L502">  }</span>
+
+  public void addStudyStreakCounter(int x) {
+<span class="nc" id="L505">    this.studyStreakCounter += x;</span>
+<span class="nc" id="L506">  }</span>
+
+  // Bookworm
+  public int getBookWormCounter() {
+<span class="nc" id="L510">    return this.bookWormCounter;</span>
+  }
+
+  public void setBookWormCounter(int x) {
+<span class="nc" id="L514">    this.bookWormCounter = x;</span>
+<span class="nc" id="L515">  }</span>
+
+  public void addBookWormCounter(int x) {
+<span class="nc" id="L518">    this.bookWormCounter += x;</span>
+<span class="nc" id="L519">  }</span>
+
+  // Eat Streak
+  public int getEatStreakCounter() {
+<span class="nc" id="L523">    return this.eatStreakCounter;</span>
+  }
+
+  public void setEatStreakCounter(int x) {
+<span class="nc" id="L527">    this.eatStreakCounter = x;</span>
+<span class="nc" id="L528">  }</span>
+
+  public void addEatStreakCounter(int x) {
+<span class="nc" id="L531">    this.eatStreakCounter += x;</span>
+<span class="nc" id="L532">  }</span>
+
+  // Fun Streak
+  public int getFunStreakCounter() {
+<span class="nc" id="L536">    return this.funStreakCounter;</span>
+  }
+
+  public void setFunStreakCounter(int x) {
+<span class="nc" id="L540">    this.funStreakCounter = x;</span>
+<span class="nc" id="L541">  }</span>
+
+  public void addFunStreakCounter(int x) {
+<span class="nc" id="L544">    this.funStreakCounter += x;</span>
+<span class="nc" id="L545">  }</span>
+
+  // All Nighter
+  public int getNoSleepCounter() {
+<span class="nc" id="L549">    return this.noSleepCounter;</span>
+  }
+
+  public void setNoSleepCounter(int x) {
+<span class="nc" id="L553">    this.noSleepCounter = x;</span>
+<span class="nc" id="L554">  }</span>
+
+  public void addNoSleepCounter(int x) {
+<span class="nc" id="L557">    this.noSleepCounter += x;</span>
+<span class="nc" id="L558">  }</span>
+
+  public HustleGame getGame() {
+<span class="nc" id="L561">    return game;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

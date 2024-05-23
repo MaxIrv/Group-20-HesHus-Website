@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Achievement.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">Achievement.java</span></div><h1>Achievement.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import java.util.function.Predicate;
+
+/** Represents an achievement in the game. */
+public class Achievement {
+  private String title;
+  private String description;
+  private Predicate&lt;Integer&gt; conditions;
+  private boolean achieved;
+
+  /**
+   * Creates an achievement with the given title, description, and conditions.
+   *
+   * @param title the title of the achievement
+   * @param description the description of the achievement
+   * @param conditions the conditions that must be met to achieve the achievement
+   */
+<span class="fc" id="L19">  public Achievement(String title, String description, Predicate&lt;Integer&gt; conditions) {</span>
+<span class="fc" id="L20">    this.title = title;</span>
+<span class="fc" id="L21">    this.description = description;</span>
+<span class="fc" id="L22">    this.conditions = conditions;</span>
+<span class="fc" id="L23">    this.achieved = false;</span>
+<span class="fc" id="L24">  }</span>
+
+  /**
+   * Checks if the conditions for the achievement are met and sets the achievement to achieved if
+   * they are.
+   *
+   * @param x the value to check the conditions against
+   */
+  public void checkCondition(Integer x) {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">    if (this.getConditions().test(x)) {</span>
+<span class="fc" id="L34">      this.setAchieved(true);</span>
+    }
+<span class="fc" id="L36">  }</span>
+
+  // Getters and Setters
+  public String getTitle() {
+<span class="fc" id="L40">    return this.title;</span>
+  }
+
+  public void setTitle(String x) {
+<span class="fc" id="L44">    this.title = x;</span>
+<span class="fc" id="L45">  }</span>
+
+  public String getDescription() {
+<span class="fc" id="L48">    return this.description;</span>
+  }
+
+  public void setDescription(String x) {
+<span class="fc" id="L52">    this.description = x;</span>
+<span class="fc" id="L53">  }</span>
+
+  public Predicate&lt;Integer&gt; getConditions() {
+<span class="fc" id="L56">    return this.conditions;</span>
+  }
+
+  public void setConditions(Predicate&lt;Integer&gt; x) {
+<span class="fc" id="L60">    this.conditions = x;</span>
+<span class="fc" id="L61">  }</span>
+
+  public boolean getAchieved() {
+<span class="fc" id="L64">    return this.achieved;</span>
+  }
+
+  public void setAchieved(boolean x) {
+<span class="fc" id="L68">    this.achieved = x;</span>
+<span class="fc" id="L69">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

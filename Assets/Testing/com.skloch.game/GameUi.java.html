@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameUi.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">GameUi.java</span></div><h1>GameUi.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.Action;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.RunnableAction;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.skloch.game.events.DayUpdatedEvent;
+import com.skloch.game.events.EnergyUpdatedEvent;
+import com.skloch.game.events.EventBus;
+import com.skloch.game.events.FadeBlackScreenEvent;
+import com.skloch.game.events.GameStatsUpdatedEvent;
+import com.skloch.game.events.TimeUpdatedEvent;
+import com.skloch.game.events.dialoguebox.DialogueScrollEvent;
+import com.skloch.game.events.dialoguebox.DialogueSetOptions;
+import com.skloch.game.events.dialoguebox.DialogueSetText;
+import com.skloch.game.events.dialoguebox.DialogueUpdateState;
+import com.skloch.game.interfaces.GameLogicInterface;
+import com.skloch.game.interfaces.GameScreenProvider;
+import com.skloch.game.interfaces.GameUiInterface;
+
+/**
+ * A class to display the game's user interface, including the energy bar, time, stats, and dialogue
+ * box. This class is called by the GameScreen class to render the GUI.
+ */
+public class GameUi implements GameUiInterface {
+  private final HustleGame game;
+  private final GameScreen gameScreen;
+  private final GameLogicInterface gameLogic;
+  private final GameScreenProvider gameScreenProvider;
+  private final Stage uiStage;
+
+  private final Label timeLabel;
+  private final Label dayLabel;
+  private final Label hoursRecreationalLabel;
+  private final Label hoursStudiedLabel;
+  private final Label mealsEatenLabel;
+  private final Label hoursSleptLabel;
+  private final Label interactionLabel;
+
+  private Image energyBar;
+  private Window escapeMenu;
+  private Image blackScreen;
+
+  public Table uiTable;
+  public final DialogueBox dialogueBox;
+
+  /**
+   * Constructs a GameUI object to display the game's user interface, including the energy bar,
+   * time, stats, and dialogue box.
+   *
+   * @param game The game object
+   * @param gameScreen The game screen object
+   * @param gameLogic The game logic object
+   * @param eventBus The event bus for subscribing to game events
+   * @param gameScreenProvider The game screen provider
+   */
+  public GameUi(
+      HustleGame game,
+      GameScreen gameScreen,
+      GameLogicInterface gameLogic,
+      EventBus eventBus,
+<span class="nc" id="L73">      GameScreenProvider gameScreenProvider) {</span>
+<span class="nc" id="L74">    this.game = game;</span>
+<span class="nc" id="L75">    this.gameScreen = gameScreen;</span>
+<span class="nc" id="L76">    this.gameLogic = gameLogic;</span>
+<span class="nc" id="L77">    this.gameScreenProvider = gameScreenProvider;</span>
+
+    // Create a stage for the user interface to be on
+<span class="nc" id="L80">    this.uiStage = new Stage(new FitViewport(game.width, game.height));</span>
+
+<span class="nc" id="L82">    this.timeLabel = new Label(formatTime((int) gameLogic.getDaySeconds()), game.skin, &quot;time&quot;);</span>
+<span class="nc" id="L83">    this.dayLabel = new Label(String.format(&quot;Day %d&quot;, gameLogic.getDay()), game.skin, &quot;day&quot;);</span>
+<span class="nc" id="L84">    this.hoursRecreationalLabel =</span>
+        new Label(
+<span class="nc" id="L86">            String.format(&quot;Played for %d hours&quot;, gameLogic.getHoursRecreational()),</span>
+            game.skin,
+            &quot;day&quot;);
+<span class="nc" id="L89">    this.hoursStudiedLabel =</span>
+        new Label(
+<span class="nc" id="L91">            String.format(&quot;Studied for %d hours&quot;, gameLogic.getHoursStudied()), game.skin, &quot;day&quot;);</span>
+<span class="nc" id="L92">    this.mealsEatenLabel =</span>
+<span class="nc" id="L93">        new Label(String.format(&quot;Eaten %d times&quot;, gameLogic.getMealsEaten()), game.skin, &quot;day&quot;);</span>
+<span class="nc" id="L94">    this.hoursSleptLabel =</span>
+<span class="nc" id="L95">        new Label(String.format(&quot;Slept for %d hours&quot;, gameLogic.getHoursSlept()), game.skin, &quot;day&quot;);</span>
+<span class="nc" id="L96">    this.interactionLabel = new Label(&quot;E - Interact&quot;, game.skin, &quot;default&quot;);</span>
+
+    // Dialogue box
+<span class="nc" id="L99">    this.dialogueBox = new DialogueBox(game.skin);</span>
+
+    // Subscribe to events
+<span class="nc" id="L102">    eventBus.subscribe(TimeUpdatedEvent.class, this::onTimeUpdated);</span>
+<span class="nc" id="L103">    eventBus.subscribe(DayUpdatedEvent.class, this::onDayUpdated);</span>
+<span class="nc" id="L104">    eventBus.subscribe(GameStatsUpdatedEvent.class, this::onGameStatsUpdated);</span>
+<span class="nc" id="L105">    eventBus.subscribe(EnergyUpdatedEvent.class, this::onEnergyUpdated);</span>
+<span class="nc" id="L106">    eventBus.subscribe(FadeBlackScreenEvent.class, this::fadeBlackScreenEvent);</span>
+<span class="nc" id="L107">    eventBus.subscribe(DialogueSetText.class, this::dialogueSetText);</span>
+<span class="nc" id="L108">    eventBus.subscribe(DialogueSetOptions.class, this::dialogueSetOptions);</span>
+<span class="nc" id="L109">    eventBus.subscribe(DialogueUpdateState.class, this::updateDialogueBox);</span>
+<span class="nc" id="L110">    eventBus.subscribe(DialogueScrollEvent.class, this::dialogueScroll);</span>
+<span class="nc" id="L111">  }</span>
+
+  /**
+   * Handles the DialogueSetText event to set the text in the dialogue box.
+   *
+   * @param event The DialogueSetText event
+   */
+  private void dialogueSetText(DialogueSetText event) {
+<span class="nc" id="L119">    String text = event.getText();</span>
+<span class="nc" id="L120">    String eventKey = event.getEventKey();</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">    if (eventKey != null) {</span>
+<span class="nc" id="L122">      dialogueBox.setText(text, eventKey);</span>
+    } else {
+<span class="nc" id="L124">      dialogueBox.setText(text);</span>
+    }
+<span class="nc" id="L126">  }</span>
+
+  /**
+   * Handles the DialogueSetOptions event to set the options in the dialogue box.
+   *
+   * @param event The DialogueSetOptions event
+   */
+  private void dialogueSetOptions(DialogueSetOptions event) {
+<span class="nc" id="L134">    String[] options = event.getOptions();</span>
+<span class="nc" id="L135">    String[] events = event.getEvents();</span>
+<span class="nc" id="L136">    dialogueBox.getSelectBox().setOptions(options, events);</span>
+<span class="nc" id="L137">  }</span>
+
+  /**
+   * Handles the DialogueUpdateState event to update the state of the dialogue box.
+   *
+   * @param event The DialogueUpdateState event
+   */
+  private void updateDialogueBox(DialogueUpdateState event) {
+<span class="nc" id="L145">    DialogueUpdateState.State state = event.getState();</span>
+<span class="nc bnc" id="L146" title="All 4 branches missed.">    switch (state) {</span>
+      case HIDE:
+<span class="nc" id="L148">        dialogueBox.hide();</span>
+<span class="nc" id="L149">        break;</span>
+      case HIDE_SELECT_BOX:
+<span class="nc" id="L151">        dialogueBox.hideSelectBox();</span>
+<span class="nc" id="L152">        break;</span>
+      case SHOW:
+<span class="nc" id="L154">        dialogueBox.show();</span>
+<span class="nc" id="L155">        break;</span>
+      default:
+        break;
+    }
+<span class="nc" id="L159">  }</span>
+
+  /**
+   * Handles the DialogueScrollEvent to scroll the text in the dialogue box.
+   *
+   * @param event The DialogueScrollEvent
+   */
+  private void dialogueScroll(DialogueScrollEvent event) {
+<span class="nc" id="L167">    dialogueBox.scrollText(event.getScrollSpeed());</span>
+<span class="nc" id="L168">  }</span>
+
+  /**
+   * Creates the UI elements, including the energy bar, time, stats, and dialogue box.
+   *
+   * @param worldWidth The width of the world
+   * @param worldHeight The height of the world
+   */
+  @Override
+  public void createUi(float worldWidth, float worldHeight) {
+    // Add a black image over everything first
+<span class="nc" id="L179">    blackScreen = new Image(new Texture(Gdx.files.internal(&quot;Sprites/black_square.png&quot;)));</span>
+<span class="nc" id="L180">    blackScreen.setSize(worldWidth, worldHeight);</span>
+<span class="nc" id="L181">    blackScreen.addAction(Actions.alpha(0f));</span>
+
+<span class="nc" id="L183">    dialogueBox.setPos((worldWidth - dialogueBox.getWidth()) / 2f, 15f);</span>
+<span class="nc" id="L184">    dialogueBox.hide();</span>
+
+    // UI table to put everything in
+<span class="nc" id="L187">    uiTable = new Table();</span>
+<span class="nc" id="L188">    uiTable.setSize(game.width, game.height);</span>
+<span class="nc" id="L189">    uiStage.addActor(uiTable);</span>
+
+    // Load energy bar elements
+<span class="nc" id="L192">    Group energyGroup = new Group();</span>
+<span class="nc" id="L193">    energyGroup.setDebug(true);</span>
+<span class="nc" id="L194">    energyBar = new Image(new Texture(Gdx.files.internal(&quot;Interface/Energy Bar/green_bar.png&quot;)));</span>
+<span class="nc" id="L195">    Image energyBarOutline =</span>
+<span class="nc" id="L196">        new Image(new Texture(Gdx.files.internal(&quot;Interface/Energy Bar/bar_outline.png&quot;)));</span>
+<span class="nc" id="L197">    energyBarOutline.setPosition(worldWidth - energyBarOutline.getWidth() - 15, 15);</span>
+<span class="nc" id="L198">    energyBar.setPosition(energyBarOutline.getX() + 16, energyBarOutline.getY() + 16);</span>
+<span class="nc" id="L199">    energyGroup.addActor(energyBar);</span>
+<span class="nc" id="L200">    energyGroup.addActor(energyBarOutline);</span>
+
+<span class="nc" id="L202">    Table statsTable = new Table();</span>
+<span class="nc" id="L203">    statsTable.setFillParent(true);</span>
+
+<span class="nc" id="L205">    statsTable.add(mealsEatenLabel).top().right();</span>
+<span class="nc" id="L206">    statsTable.row();</span>
+<span class="nc" id="L207">    statsTable.add(hoursStudiedLabel).top().right();</span>
+<span class="nc" id="L208">    statsTable.row();</span>
+<span class="nc" id="L209">    statsTable.add(hoursRecreationalLabel).top().right();</span>
+<span class="nc" id="L210">    statsTable.row();</span>
+<span class="nc" id="L211">    statsTable.add(hoursSleptLabel).top().right();</span>
+<span class="nc" id="L212">    statsTable.top().right().padRight(10).padTop(10);</span>
+
+    // Table to display date and time
+<span class="nc" id="L215">    Table timeTable = new Table();</span>
+<span class="nc" id="L216">    timeTable.setFillParent(true);</span>
+<span class="nc" id="L217">    timeTable.add(timeLabel).uniformX();</span>
+<span class="nc" id="L218">    timeTable.row();</span>
+<span class="nc" id="L219">    timeTable.add(dayLabel).uniformX().left().padTop(2);</span>
+<span class="nc" id="L220">    timeTable.top().left().padLeft(10).padTop(10);</span>
+
+    // Set the order of rendered UI elements
+<span class="nc" id="L223">    uiTable.add(interactionLabel).padTop(300);</span>
+<span class="nc" id="L224">    uiStage.addActor(statsTable);</span>
+<span class="nc" id="L225">    uiStage.addActor(energyGroup);</span>
+<span class="nc" id="L226">    uiStage.addActor(timeTable);</span>
+<span class="nc" id="L227">    uiStage.addActor(blackScreen);</span>
+<span class="nc" id="L228">    uiStage.addActor(dialogueBox.getWindow());</span>
+<span class="nc" id="L229">    uiStage.addActor(dialogueBox.getSelectBox().getWindow());</span>
+
+<span class="nc" id="L231">    setupEscapeMenu(worldWidth, worldHeight);</span>
+
+    // Display a little good morning message
+<span class="nc" id="L234">    dialogueBox.show();</span>
+<span class="nc" id="L235">    dialogueBox.setText(gameLogic.getWakeUpMessage());</span>
+<span class="nc" id="L236">  }</span>
+
+  /**
+   * Updates the UI elements, including the energy bar, time, stats, and dialogue box.
+   *
+   * @param delta The time since the last frame
+   */
+  @Override
+  public void renderUi(float delta) {
+<span class="nc" id="L245">    checkInteraction();</span>
+
+    // Update UI elements
+<span class="nc" id="L248">    uiStage.getViewport().apply();</span>
+<span class="nc" id="L249">    uiStage.act(delta);</span>
+<span class="nc" id="L250">    uiStage.draw();</span>
+<span class="nc" id="L251">  }</span>
+
+  /** Checks if the player is near an object and displays the interaction label. */
+  private void checkInteraction() {
+<span class="nc" id="L255">    interactionLabel.setVisible(false);</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">    if (!gameScreenProvider.isDialogueBoxVisible()</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">        &amp;&amp; !isEscapeMenuVisible()</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">        &amp;&amp; !gameScreenProvider.isPlayerSleeping()) {</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">      if (gameScreenProvider.isPlayerNearObject()) {</span>
+<span class="nc" id="L260">        interactionLabel.setVisible(true);</span>
+        // Change text whether pressing E will interact or just read text
+<span class="nc bnc" id="L262" title="All 2 branches missed.">        if (gameScreenProvider.getPlayerClosestObject().get(&quot;event&quot;) != null) {</span>
+<span class="nc" id="L263">          interactionLabel.setText(&quot;E - Interact&quot;);</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        } else if (gameScreenProvider.getPlayerClosestObject().get(&quot;text&quot;) != null) {</span>
+<span class="nc" id="L265">          interactionLabel.setText(&quot;E - Read Sign&quot;);</span>
+        }
+      }
+    }
+<span class="nc" id="L269">  }</span>
+
+  /**
+   * Resizes the UI elements to fit the screen.
+   *
+   * @param width The new width of the screen
+   * @param height The new height of the screen
+   */
+  @Override
+  public void resizeUi(int width, int height) {
+<span class="nc" id="L279">    uiStage.getViewport().update(width, height, true);</span>
+<span class="nc" id="L280">  }</span>
+
+  @Override
+  public Stage getUiStage() {
+<span class="nc" id="L284">    return uiStage;</span>
+  }
+
+  @Override
+  public void dispose() {
+<span class="nc" id="L289">    uiStage.dispose();</span>
+<span class="nc" id="L290">  }</span>
+
+  /**
+   * Handles the TimeUpdatedEvent to update the time label.
+   *
+   * @param event The TimeUpdatedEvent
+   */
+  private void onTimeUpdated(TimeUpdatedEvent event) {
+<span class="nc" id="L298">    timeLabel.setText(formatTime((int) event.getDaySeconds()));</span>
+<span class="nc" id="L299">  }</span>
+
+  /**
+   * Handles the DayUpdatedEvent to update the day label.
+   *
+   * @param event The DayUpdatedEvent
+   */
+  private void onDayUpdated(DayUpdatedEvent event) {
+<span class="nc" id="L307">    dayLabel.setText(String.format(&quot;Day %d&quot;, event.getDay()));</span>
+<span class="nc" id="L308">  }</span>
+
+  /**
+   * Handles the GameStatsUpdatedEvent to update the game stats labels.
+   *
+   * @param event The GameStatsUpdatedEvent
+   */
+  private void onGameStatsUpdated(GameStatsUpdatedEvent event) {
+<span class="nc" id="L316">    timeLabel.setText(formatTime((int) event.getDaySeconds()));</span>
+<span class="nc" id="L317">    dayLabel.setText(String.format(&quot;Day %d&quot;, event.getDay()));</span>
+<span class="nc" id="L318">    hoursRecreationalLabel.setText(</span>
+<span class="nc" id="L319">        String.format(&quot;Played for %d hours&quot;, event.getHoursRecreational()));</span>
+<span class="nc" id="L320">    hoursStudiedLabel.setText(String.format(&quot;Studied for %d hours&quot;, event.getHoursStudied()));</span>
+<span class="nc" id="L321">    mealsEatenLabel.setText(String.format(&quot;Eaten %d times&quot;, event.getMealsEaten()));</span>
+<span class="nc" id="L322">    hoursSleptLabel.setText(String.format(&quot;Slept for %d hours&quot;, event.getHoursSlept()));</span>
+<span class="nc" id="L323">  }</span>
+
+  /**
+   * Handles the EnergyUpdatedEvent to update the energy bar.
+   *
+   * @param event The EnergyUpdatedEvent
+   */
+  private void onEnergyUpdated(EnergyUpdatedEvent event) {
+<span class="nc" id="L331">    energyBar.setScaleY(event.getEnergy() / 100f);</span>
+<span class="nc" id="L332">  }</span>
+
+  /**
+   * Handles the FadeBlackScreenEvent to fade the black screen.
+   *
+   * @param event The FadeBlackScreenEvent
+   */
+  private void fadeBlackScreenEvent(FadeBlackScreenEvent event) {
+<span class="nc" id="L340">    Action fadeInAction = event.getAction();</span>
+<span class="nc" id="L341">    RunnableAction runnableAction = event.getRunnableAction();</span>
+
+<span class="nc bnc" id="L343" title="All 2 branches missed.">    if (runnableAction != null) {</span>
+<span class="nc" id="L344">      blackScreen.addAction(Actions.sequence(fadeInAction, runnableAction));</span>
+    } else {
+<span class="nc" id="L346">      blackScreen.addAction(fadeInAction);</span>
+    }
+<span class="nc" id="L348">  }</span>
+
+  /**
+   * Formats a number of seconds into a 12-hour clock time.
+   *
+   * @param seconds The number of seconds
+   * @return The time in 12-hour clock format
+   */
+  private String formatTime(int seconds) {
+<span class="nc" id="L357">    int hour = Math.floorDiv(seconds, 60);</span>
+<span class="nc" id="L358">    String minutes = String.format(&quot;%02d&quot;, (seconds - hour * 60));</span>
+
+    // Make 12-hour clock format
+<span class="nc bnc" id="L361" title="All 4 branches missed.">    if (hour == 24 || hour == 0) {</span>
+<span class="nc" id="L362">      return String.format(&quot;12:%sam&quot;, minutes);</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">    } else if (hour == 12) {</span>
+<span class="nc" id="L364">      return String.format(&quot;12:%spm&quot;, minutes);</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">    } else if (hour &gt; 12) {</span>
+<span class="nc" id="L366">      return String.format(&quot;%d:%spm&quot;, hour - 12, minutes);</span>
+    } else {
+<span class="nc" id="L368">      return String.format(&quot;%d:%sam&quot;, hour, minutes);</span>
+    }
+  }
+
+  /**
+   * Checks if the escape menu is visible.
+   *
+   * @return true if the escape menu is visible, false otherwise
+   */
+  public boolean isEscapeMenuVisible() {
+<span class="nc" id="L378">    return escapeMenu.isVisible();</span>
+  }
+
+  /**
+   * Sets the visibility of the escape menu.
+   *
+   * @param visible true to make the escape menu visible, false to hide it
+   */
+  public void setEscapeMenuVisible(boolean visible) {
+<span class="nc" id="L387">    escapeMenu.setVisible(visible);</span>
+<span class="nc" id="L388">  }</span>
+
+  /**
+   * Configures everything needed to display the escape menu window when the player presses
+   * 'escape'.
+   *
+   * @param worldWidth The width of the world
+   * @param worldHeight The height of the world
+   */
+  private void setupEscapeMenu(float worldWidth, float worldHeight) {
+<span class="nc" id="L398">    escapeMenu = new Window(&quot;&quot;, game.skin);</span>
+<span class="nc" id="L399">    uiStage.addActor(escapeMenu);</span>
+<span class="nc" id="L400">    escapeMenu.setModal(true);</span>
+
+<span class="nc" id="L402">    Table escapeTable = new Table();</span>
+<span class="nc" id="L403">    escapeTable.setFillParent(true);</span>
+<span class="nc" id="L404">    escapeMenu.add(escapeTable);</span>
+
+<span class="nc" id="L406">    TextButton resumeButton = new TextButton(&quot;Resume&quot;, game.skin);</span>
+<span class="nc" id="L407">    escapeTable.add(resumeButton).pad(60, 80, 10, 80).width(300);</span>
+<span class="nc" id="L408">    escapeTable.row();</span>
+
+<span class="nc" id="L410">    TextButton settingsButton = new TextButton(&quot;Settings&quot;, game.skin);</span>
+<span class="nc" id="L411">    escapeTable.add(settingsButton).pad(10, 50, 10, 50).width(300);</span>
+<span class="nc" id="L412">    escapeTable.row();</span>
+
+<span class="nc" id="L414">    TextButton exitButton = new TextButton(&quot;Exit&quot;, game.skin);</span>
+<span class="nc" id="L415">    escapeTable.add(exitButton).pad(10, 50, 60, 50).width(300);</span>
+
+<span class="nc" id="L417">    escapeMenu.pack();</span>
+<span class="nc" id="L418">    escapeMenu.setX((worldWidth / 2) - (escapeMenu.getWidth() / 2));</span>
+<span class="nc" id="L419">    escapeMenu.setY((worldHeight / 2) - (escapeMenu.getHeight() / 2));</span>
+
+    // Create button listeners
+<span class="nc" id="L422">    resumeButton.addListener(</span>
+<span class="nc" id="L423">        new ChangeListener() {</span>
+          @Override
+          public void changed(ChangeEvent event, Actor actor) {
+<span class="nc bnc" id="L426" title="All 2 branches missed.">            if (escapeMenu.isVisible()) {</span>
+<span class="nc" id="L427">              game.soundManager.playButton();</span>
+<span class="nc" id="L428">              game.soundManager.playOverworldMusic();</span>
+<span class="nc" id="L429">              escapeMenu.setVisible(false);</span>
+            }
+<span class="nc" id="L431">          }</span>
+        });
+
+<span class="nc" id="L434">    settingsButton.addListener(</span>
+<span class="nc" id="L435">        new ChangeListener() {</span>
+          @Override
+          public void changed(ChangeEvent event, Actor actor) {
+<span class="nc bnc" id="L438" title="All 2 branches missed.">            if (escapeMenu.isVisible()) {</span>
+<span class="nc" id="L439">              game.soundManager.playButton();</span>
+<span class="nc" id="L440">              game.setScreen(new SettingsScreen(game, gameScreen));</span>
+            }
+<span class="nc" id="L442">          }</span>
+        });
+
+<span class="nc" id="L445">    exitButton.addListener(</span>
+<span class="nc" id="L446">        new ChangeListener() {</span>
+          @Override
+          public void changed(ChangeEvent event, Actor actor) {
+<span class="nc bnc" id="L449" title="All 2 branches missed.">            if (escapeMenu.isVisible()) {</span>
+<span class="nc" id="L450">              game.soundManager.playButton();</span>
+<span class="nc" id="L451">              game.soundManager.stopOverworldMusic();</span>
+<span class="nc" id="L452">              dispose();</span>
+<span class="nc" id="L453">              game.setScreen(new MenuScreen(game));</span>
+            }
+<span class="nc" id="L455">          }</span>
+        });
+
+<span class="nc" id="L458">    escapeMenu.setVisible(false);</span>
+<span class="nc" id="L459">  }</span>
+
+  /**
+   * Returns the dialogue box.
+   *
+   * @return The dialogue box
+   */
+  public DialogueBox getDialogueBox() {
+<span class="nc" id="L467">    return dialogueBox;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

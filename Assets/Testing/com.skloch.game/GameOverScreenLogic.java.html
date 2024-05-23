@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameOverScreenLogic.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">GameOverScreenLogic.java</span></div><h1>GameOverScreenLogic.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+/**
+ * Logic for the Game Over screen, including achievements.
+ */
+public class GameOverScreenLogic {
+  private final HustleGame game;
+  private final int hoursStudied;
+  private final int hoursRecreational;
+  private final int hoursSlept;
+  private final int mealsEaten;
+
+  /**
+   * Constructor for the GameOverScreenLogic.
+   *
+   * @param game              the game object
+   * @param hoursStudied      the number of hours studied
+   * @param hoursRecreational the number of hours spent on recreational activities
+   * @param hoursSlept        the number of hours slept
+   * @param mealsEaten        the number of meals eaten
+   * @param score             the player's score
+   */
+  public GameOverScreenLogic(HustleGame game, int hoursStudied, int hoursRecreational,
+<span class="fc" id="L24">                             int hoursSlept, int mealsEaten, float score) {</span>
+<span class="fc" id="L25">    this.game = game;</span>
+<span class="fc" id="L26">    this.hoursStudied = hoursStudied;</span>
+<span class="fc" id="L27">    this.hoursRecreational = hoursRecreational;</span>
+<span class="fc" id="L28">    this.hoursSlept = hoursSlept;</span>
+<span class="fc" id="L29">    this.mealsEaten = mealsEaten;</span>
+<span class="fc" id="L30">  }</span>
+
+  /**
+   * Get the scores for the game over screen, including achievements.
+   *
+   * @return a 2D array of strings, where each row is a score and each column is a title and value
+   */
+  public String[][] getScores() {
+<span class="fc" id="L38">    String[][] scores = {</span>
+<span class="fc" id="L39">        {&quot;Hours Studied&quot;, String.valueOf(hoursStudied)},</span>
+<span class="fc" id="L40">        {&quot;Recreational hours&quot;, String.valueOf(hoursRecreational)},</span>
+<span class="fc" id="L41">        {&quot;Hours Slept&quot;, String.valueOf(hoursSlept)},</span>
+<span class="fc" id="L42">        {&quot;Meals Eaten&quot;, String.valueOf(mealsEaten)}</span>
+    };
+
+<span class="fc bfc" id="L45" title="All 2 branches covered.">    if (game.studyStreak.getAchieved()) {</span>
+<span class="fc" id="L46">      scores = addAchievement(scores, game.studyStreak.getTitle());</span>
+    }
+<span class="fc bfc" id="L48" title="All 2 branches covered.">    if (game.bookWorm.getAchieved()) {</span>
+<span class="fc" id="L49">      scores = addAchievement(scores, game.bookWorm.getTitle());</span>
+    }
+<span class="fc bfc" id="L51" title="All 2 branches covered.">    if (game.eatStreak.getAchieved()) {</span>
+<span class="fc" id="L52">      scores = addAchievement(scores, game.eatStreak.getTitle());</span>
+    }
+<span class="fc bfc" id="L54" title="All 2 branches covered.">    if (game.funStreak.getAchieved()) {</span>
+<span class="fc" id="L55">      scores = addAchievement(scores, game.funStreak.getTitle());</span>
+    }
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    if (game.allNighter.getAchieved()) {</span>
+<span class="fc" id="L58">      scores = addAchievement(scores, game.allNighter.getTitle());</span>
+    }
+
+<span class="fc" id="L61">    return scores;</span>
+  }
+
+  private String[][] addAchievement(String[][] scores, String achievement) {
+<span class="fc" id="L65">    String[][] newScores = new String[scores.length + 1][2];</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">    for (int i = 0; i &lt; scores.length; i++) {</span>
+<span class="fc" id="L67">      newScores[i] = scores[i];</span>
+    }
+<span class="fc" id="L69">    newScores[scores.length] = new String[] {&quot;Achievement&quot;, achievement};</span>
+<span class="fc" id="L70">    return newScores;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

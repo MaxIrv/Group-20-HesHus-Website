@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SoundManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">SoundManager.java</span></div><h1>SoundManager.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.utils.Disposable;
+import com.skloch.game.interfaces.SoundManagerInterface;
+
+/** A class handling loading, playing and disposing of sounds. */
+public class SoundManager implements Disposable, SoundManagerInterface {
+  public Music overworldMusic;
+  public Music menuMusic;
+  private Sound footstep1;
+  private Sound footstep2;
+  public boolean footstepBool;
+  private float footstepTimer;
+<span class="nc" id="L17">  private float sfxVolume = 0.8f;</span>
+<span class="nc" id="L18">  private float musicVolume = 0.8f;</span>
+  private Sound pauseSound;
+  private Sound dialogueOpenSound;
+  private Sound dialogueOptionSound;
+  private Sound buttonSound;
+
+  /**
+   * A class to handle playing sounds in the game, handles loading and playing of music and sounds
+   * so a GameScreen can just call &quot;play overworld music&quot; without needing to know the track title.
+   * Also handles disposing sounds and music
+   */
+<span class="nc" id="L29">  public SoundManager() {</span>
+    // Load music
+<span class="nc" id="L31">    overworldMusic = Gdx.audio.newMusic(Gdx.files.internal(&quot;Music/OverworldMusic.mp3&quot;));</span>
+<span class="nc" id="L32">    overworldMusic.setLooping(true);</span>
+<span class="nc" id="L33">    menuMusic = Gdx.audio.newMusic(Gdx.files.internal(&quot;Music/Streetlights.ogg&quot;));</span>
+<span class="nc" id="L34">    menuMusic.setLooping(true);</span>
+
+    // Load SFX
+<span class="nc" id="L37">    footstep1 = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/footstep1 grass.ogg&quot;));</span>
+<span class="nc" id="L38">    footstep2 = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/footstep2 grass.ogg&quot;));</span>
+
+<span class="nc" id="L40">    pauseSound = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/Pause01.wav&quot;));</span>
+<span class="nc" id="L41">    dialogueOpenSound = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/DialogueOpen.wav&quot;));</span>
+<span class="nc" id="L42">    dialogueOptionSound = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/DialogueOption.wav&quot;));</span>
+<span class="nc" id="L43">    buttonSound = Gdx.audio.newSound(Gdx.files.internal(&quot;Sounds/Button.wav&quot;));</span>
+<span class="nc" id="L44">  }</span>
+
+  /**
+   * Sets the volume of the music.
+   *
+   * @param volume The volume to set the music to
+   */
+  public void setMusicVolume(float volume) {
+<span class="nc" id="L52">    this.musicVolume = volume;</span>
+<span class="nc" id="L53">    overworldMusic.setVolume(musicVolume);</span>
+<span class="nc" id="L54">    menuMusic.setVolume(musicVolume);</span>
+<span class="nc" id="L55">  }</span>
+
+  /**
+   * Sets the sound effect volume.
+   *
+   * @param volume The volume to set the sound effects to
+   */
+  public void setSfxVolume(float volume) {
+<span class="nc" id="L63">    this.sfxVolume = volume;</span>
+<span class="nc" id="L64">  }</span>
+
+  /** A sound for when the pause menu appears. */
+  public void playPauseSound() {
+<span class="nc" id="L68">    pauseSound.play(sfxVolume);</span>
+<span class="nc" id="L69">  }</span>
+
+  /** A sound for when the dialogue box appears. */
+  public void playDialogueOpen() {
+<span class="nc" id="L73">    dialogueOpenSound.play(sfxVolume);</span>
+<span class="nc" id="L74">  }</span>
+
+  /** A sound for when the arrow in the selectBox is moved. */
+  public void playDialogueOption() {
+<span class="nc" id="L78">    dialogueOptionSound.play(sfxVolume);</span>
+<span class="nc" id="L79">  }</span>
+
+  /** A sound for when a button is pressed. */
+  public void playButton() {
+<span class="nc" id="L83">    buttonSound.play(sfxVolume);</span>
+<span class="nc" id="L84">  }</span>
+
+  /** Plays the music for the overworld (main game). */
+  public void playOverworldMusic() {
+<span class="nc" id="L88">    overworldMusic.play();</span>
+<span class="nc" id="L89">  }</span>
+
+  /** Stops the music for the overworld. */
+  public void stopOverworldMusic() {
+<span class="nc" id="L93">    overworldMusic.stop();</span>
+<span class="nc" id="L94">  }</span>
+
+  /** Plays the music for the menu. */
+  public void playMenuMusic() {
+<span class="nc" id="L98">    menuMusic.play();</span>
+<span class="nc" id="L99">  }</span>
+
+  /** Stops the music for the menu. */
+  public void stopMenuMusic() {
+<span class="nc" id="L103">    menuMusic.stop();</span>
+<span class="nc" id="L104">  }</span>
+
+  /** Pauses the overworld music, so it can be resumed from this point later. */
+  public void pauseOverworldMusic() {
+<span class="nc" id="L108">    overworldMusic.pause();</span>
+<span class="nc" id="L109">  }</span>
+
+  /**
+   * Resumes the overworld music from the point it was paused.
+   *
+   * @return The current music volume
+   */
+  public float getMusicVolume() {
+<span class="nc" id="L117">    return musicVolume;</span>
+  }
+
+  /**
+   * Resumes the overworld music from the point it was paused.
+   *
+   * @return The current sound effect volume
+   */
+  public float getSfxVolume() {
+<span class="nc" id="L126">    return sfxVolume;</span>
+  }
+
+  /**
+   * Updates the timers for sounds that repeat regularly, needs to be called every render cycle.
+   * Specifically handles triggering footsteps when the player is moving.
+   *
+   * @param delta Time passed since the last render
+   */
+  public void processTimers(float delta) {
+    // Decrements timers for any recurring sounds, like footsteps
+    // Events that make these sounds can then check that their specific timer is zero and play a
+    // noise
+<span class="nc" id="L139">    footstepTimer -= delta;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">    if (footstepTimer &lt; 0) {</span>
+<span class="nc" id="L141">      footstepTimer = 0;</span>
+    }
+<span class="nc" id="L143">  }</span>
+
+  /**
+   * Plays an alternating footstep sound when the player is moving and the footstepTimer variable
+   * has hit zero. Uses two different SFX to sound more realistic and to allow the timing to be
+   * configured
+   */
+  public void playFootstep() {
+    // If it is time to play a footstep, play one
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    if (footstepTimer &lt;= 0) {</span>
+<span class="nc" id="L153">      footstepTimer = 0.5f; // Delay between each footstep sound, increase to have slower steps</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">      if (footstepBool == false) {</span>
+<span class="nc" id="L155">        footstep1.play(sfxVolume);</span>
+<span class="nc" id="L156">        footstepBool = true;</span>
+      } else {
+<span class="nc" id="L158">        footstep2.play(sfxVolume);</span>
+<span class="nc" id="L159">        footstepBool = false;</span>
+      }
+    }
+<span class="nc" id="L162">  }</span>
+
+  public void stopFootstep() {
+<span class="nc" id="L165">    footstepBool = false;</span>
+<span class="nc" id="L166">  }</span>
+
+  /** Disposes of all music and sound effects. */
+  @Override
+  public void dispose() {
+<span class="nc" id="L171">    overworldMusic.dispose();</span>
+<span class="nc" id="L172">    menuMusic.dispose();</span>
+<span class="nc" id="L173">    footstep1.dispose();</span>
+<span class="nc" id="L174">    footstep2.dispose();</span>
+<span class="nc" id="L175">    pauseSound.dispose();</span>
+<span class="nc" id="L176">    dialogueOpenSound.dispose();</span>
+<span class="nc" id="L177">    dialogueOptionSound.dispose();</span>
+<span class="nc" id="L178">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

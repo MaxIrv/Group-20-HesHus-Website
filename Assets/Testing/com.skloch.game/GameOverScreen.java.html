@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameOverScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">GameOverScreen.java</span></div><h1>GameOverScreen.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+
+/**
+ * Screen that displays when the player loses the game. Displays the player's score and allows them
+ * to return to the main menu or view the leaderboard.
+ */
+public class GameOverScreen implements Screen {
+  private HustleGame game;
+  Stage gameOverStage;
+  Viewport viewport;
+  OrthographicCamera camera;
+  private TextButton exitButton;
+  private TextButton leaderboardButton;
+
+  /**
+   * Constructor for the GameOverScreen.
+   *
+   * @param game the game object
+   * @param hoursStudied the number of hours studied
+   * @param hoursRecreational the number of hours spent on recreational activities
+   * @param hoursSlept the number of hours slept
+   * @param mealsEaten the number of meals eaten
+   * @param score the player's score
+   */
+  public GameOverScreen(final HustleGame game, int hoursStudied, int hoursRecreational,
+<span class="nc" id="L41">                        int hoursSlept, int mealsEaten, float score) {</span>
+<span class="nc" id="L42">    this.game = game;</span>
+<span class="nc" id="L43">    gameOverStage = new Stage(new FitViewport(game.width, game.height));</span>
+<span class="nc" id="L44">    Gdx.input.setInputProcessor(gameOverStage);</span>
+
+<span class="nc" id="L46">    camera = new OrthographicCamera();</span>
+<span class="nc" id="L47">    viewport = new FitViewport(game.width, game.height, camera);</span>
+<span class="nc" id="L48">    camera.setToOrtho(false, game.width, game.height);</span>
+
+    // Create the window
+<span class="nc" id="L51">    Window gameOverWindow = new Window(&quot;&quot;, game.skin);</span>
+<span class="nc" id="L52">    gameOverStage.addActor(gameOverWindow);</span>
+
+    // Table for UI elements in window
+<span class="nc" id="L55">    Table gameOverTable = new Table();</span>
+<span class="nc" id="L56">    gameOverWindow.add(gameOverTable);</span>
+
+    // Title
+<span class="nc" id="L59">    Label title = new Label(&quot;Game Over!&quot;, game.skin, &quot;button&quot;);</span>
+<span class="nc" id="L60">    gameOverTable.add(title).padTop(10);</span>
+<span class="nc" id="L61">    gameOverTable.row();</span>
+
+<span class="nc" id="L63">    Table scoresTable = new Table();</span>
+<span class="nc" id="L64">    gameOverTable.add(scoresTable);</span>
+<span class="nc" id="L65">    gameOverTable.row();</span>
+
+    // Create logic object and get scores
+<span class="nc" id="L68">    GameOverScreenLogic logic =</span>
+        new GameOverScreenLogic(game, hoursStudied, hoursRecreational, hoursSlept, mealsEaten,
+            score);
+<span class="nc" id="L71">    String[][] scores = logic.getScores();</span>
+<span class="nc" id="L72">    populateScoresTable(scoresTable, scores, game.skin);</span>
+
+    // Exit button
+<span class="nc" id="L75">    exitButton = new TextButton(&quot;Main Menu&quot;, game.skin);</span>
+<span class="nc" id="L76">    gameOverTable.add(exitButton).bottom().width(300).padTop(10);</span>
+<span class="nc" id="L77">    leaderboardButton = new TextButton(&quot;Leaderboard&quot;, game.skin);</span>
+<span class="nc" id="L78">    gameOverTable.row();</span>
+<span class="nc" id="L79">    gameOverTable.add(leaderboardButton).width(300).bottom().padTop(10);</span>
+
+<span class="nc" id="L81">    exitButton.addListener(new ChangeListener() {</span>
+      @Override
+      public void changed(ChangeEvent event, Actor actor) {
+<span class="nc" id="L84">        game.soundManager.playButton();</span>
+<span class="nc" id="L85">        game.soundManager.stopOverworldMusic();</span>
+<span class="nc" id="L86">        dispose();</span>
+<span class="nc" id="L87">        game.setScreen(new MenuScreen(game));</span>
+<span class="nc" id="L88">      }</span>
+    });
+
+<span class="nc" id="L91">    leaderboardButton.addListener(new ChangeListener() {</span>
+      @Override
+      public void changed(ChangeEvent event, Actor actor) {
+<span class="nc" id="L94">        game.soundManager.playButton();</span>
+<span class="nc" id="L95">        dispose();</span>
+<span class="nc" id="L96">        game.setScreen(new LeaderboardScreen(game, score));</span>
+<span class="nc" id="L97">      }</span>
+    });
+
+<span class="nc" id="L100">    gameOverWindow.pack();</span>
+
+<span class="nc" id="L102">    gameOverWindow.setSize(600, 600);</span>
+
+    // Centre the window
+<span class="nc" id="L105">    gameOverWindow.setX((viewport.getWorldWidth() / 2) - (gameOverWindow.getWidth() / 2));</span>
+<span class="nc" id="L106">    gameOverWindow.setY((viewport.getWorldHeight() / 2) - (gameOverWindow.getHeight() / 2));</span>
+<span class="nc" id="L107">  }</span>
+
+  private void populateScoresTable(Table scoresTable, String[][] scores, Skin skin) {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    for (String[] score : scores) {</span>
+<span class="nc" id="L111">      scoresTable.add(new Label(score[0], skin, &quot;interaction&quot;)).padBottom(3);</span>
+<span class="nc" id="L112">      scoresTable.add(new Label(score[1], skin, &quot;button&quot;)).padBottom(3);</span>
+<span class="nc" id="L113">      scoresTable.row();</span>
+    }
+<span class="nc" id="L115">  }</span>
+
+  @Override
+  public void render(float delta) {
+<span class="nc" id="L119">    ScreenUtils.clear(0, 0, 0, 1);</span>
+
+<span class="nc" id="L121">    game.blueBackground.draw();</span>
+
+<span class="nc" id="L123">    gameOverStage.act(delta);</span>
+<span class="nc" id="L124">    gameOverStage.draw();</span>
+
+<span class="nc" id="L126">    camera.update();</span>
+<span class="nc" id="L127">  }</span>
+
+  @Override
+  public void resize(int width, int height) {
+<span class="nc" id="L131">    gameOverStage.getViewport().update(width, height);</span>
+<span class="nc" id="L132">    viewport.update(width, height);</span>
+<span class="nc" id="L133">  }</span>
+
+  @Override
+  public void show() {
+<span class="nc" id="L137">  }</span>
+
+  @Override
+  public void hide() {
+<span class="nc" id="L141">  }</span>
+
+  @Override
+  public void pause() {
+<span class="nc" id="L145">  }</span>
+
+  @Override
+  public void resume() {
+<span class="nc" id="L149">  }</span>
+
+  @Override
+  public void dispose() {
+<span class="nc" id="L153">  }</span>
+
+  // Getters and setters for testing
+  public TextButton getExitButton() {
+<span class="nc" id="L157">    return exitButton;</span>
+  }
+
+  public TextButton getLeaderboardButton() {
+<span class="nc" id="L161">    return leaderboardButton;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

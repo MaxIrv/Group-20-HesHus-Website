@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MockedClasses.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game.mocks</a> &gt; <span class="el_source">MockedClasses.java</span></div><h1>MockedClasses.java</h1><pre class="source lang-java linenums">package com.skloch.game.mocks;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.badlogic.gdx.Files;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.skloch.game.Achievement;
+import com.skloch.game.HustleGame;
+import com.skloch.game.events.EventBus;
+import com.skloch.game.interfaces.GameLogicInterface;
+import com.skloch.game.interfaces.GameScreenProvider;
+import com.skloch.game.interfaces.LeaderboardScreenInterface;
+import com.skloch.game.interfaces.PlayerInterface;
+import com.skloch.game.interfaces.SoundManagerInterface;
+
+/** A class to mock classes for testing. */
+<span class="nc" id="L21">public class MockedClasses {</span>
+
+  public static HustleGame mockHustleGame() {
+    //        game.map = mock(GameMap.class);
+<span class="fc" id="L25">    return mock(HustleGame.class);</span>
+  }
+
+  public static GameScreenProvider mockGameScreenProvider() {
+<span class="fc" id="L29">    return mock(GameScreenProvider.class);</span>
+  }
+
+  public static EventBus mockEventBus() {
+<span class="fc" id="L33">    return mock(EventBus.class);</span>
+  }
+
+  public static PlayerInterface mockPlayer() {
+<span class="fc" id="L37">    return mock(PlayerInterface.class);</span>
+  }
+
+  public static SpriteBatch mockSpriteBatch() {
+<span class="fc" id="L41">    return mock(SpriteBatch.class);</span>
+  }
+
+  public static Stage mockStage() {
+<span class="fc" id="L45">    return mock(Stage.class);</span>
+  }
+
+  public static SoundManagerInterface mockSoundManager() {
+<span class="fc" id="L49">    return mock(SoundManagerInterface.class);</span>
+  }
+
+  public static GameLogicInterface mockGameLogic() {
+<span class="fc" id="L53">    return mock(GameLogicInterface.class);</span>
+  }
+
+  public static LeaderboardScreenInterface mockLeaderboardScreen() {
+<span class="nc" id="L57">    return mock(LeaderboardScreenInterface.class);</span>
+  }
+
+  /**
+   * Mock an achievement with the given achieved status.
+   *
+   * @param achieved The achieved status of the achievement
+   * @return The mocked achievement
+   */
+  public static Achievement mockAchievement(boolean achieved) {
+<span class="nc" id="L67">    Achievement achievement = mock(Achievement.class);</span>
+<span class="nc" id="L68">    when(achievement.getAchieved()).thenReturn(achieved);</span>
+<span class="nc" id="L69">    return achievement;</span>
+  }
+
+  public static FileHandle mockFileHandle() {
+<span class="fc" id="L73">    return mock(FileHandle.class);</span>
+  }
+
+  public static TextureAtlas mockTextureAtlas() {
+<span class="fc" id="L77">    return mock(TextureAtlas.class);</span>
+  }
+
+  public static Files mockFiles() {
+<span class="fc" id="L81">    return mock(Files.class);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

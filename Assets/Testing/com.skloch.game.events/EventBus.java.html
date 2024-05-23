@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventBus.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game.events</a> &gt; <span class="el_source">EventBus.java</span></div><h1>EventBus.java</h1><pre class="source lang-java linenums">package com.skloch.game.events;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+
+/**
+ * A simple event bus that allows subscribing to and publishing events. The EventBus maintains a
+ * mapping of event types to sets of listeners.
+ */
+<span class="fc" id="L13">public class EventBus {</span>
+  // A map that associates event types with their respective listeners
+<span class="fc" id="L15">  private final Map&lt;Class&lt;?&gt;, Set&lt;Consumer&lt;?&gt;&gt;&gt; listeners = new HashMap&lt;&gt;();</span>
+
+  /**
+   * Subscribe to an event type.
+   *
+   * @param eventType The event type to subscribe to.
+   * @param listener The listener that will be called when the event is published.
+   * @param &lt;T&gt; The type of the event.
+   */
+  public &lt;T&gt; void subscribe(Class&lt;T&gt; eventType, Consumer&lt;T&gt; listener) {
+    // Adds the listener to the set of listeners for the specified event type
+<span class="fc" id="L26">    listeners.computeIfAbsent(eventType, k -&gt; new HashSet&lt;&gt;()).add(listener);</span>
+<span class="fc" id="L27">  }</span>
+
+  /**
+   * Publish an event.
+   *
+   * @param event The event to publish.
+   * @param &lt;T&gt; The type of the event.
+   */
+  public &lt;T&gt; void publish(T event) {
+    // Get the listeners for the event type
+<span class="fc" id="L37">    Set&lt;Consumer&lt;?&gt;&gt; eventListeners = listeners.get(event.getClass());</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">    if (eventListeners != null) {</span>
+      // Call each listener
+<span class="fc bfc" id="L40" title="All 2 branches covered.">      for (Consumer&lt;?&gt; listener : eventListeners) {</span>
+        // Cast the listener to the correct type and call it
+        // This is safe because we only add listeners of the correct type
+        @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L44">        Consumer&lt;T&gt; consumer = (Consumer&lt;T&gt;) listener;</span>
+<span class="fc" id="L45">        consumer.accept(event);</span>
+<span class="fc" id="L46">      }</span>
+    }
+<span class="fc" id="L48">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

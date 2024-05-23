@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HustleGame.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">HustleGame.java</span></div><h1>HustleGame.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.skloch.game.interfaces.SoundManagerInterface;
+import java.util.function.Predicate;
+
+/**
+ * A class that is initially created by DesktopLauncher, loads consistent files at the start of the
+ * game and initialises lots of important classes. Loads the map, ui skin, text files and makes
+ * sound manager and more
+ */
+public class HustleGame extends Game {
+  public SpriteBatch batch;
+  public int width;
+  public int height;
+  public Skin skin;
+  public String credits;
+  public String tutorialText;
+  public ShapeRenderer shapeRenderer;
+  public SoundManagerInterface soundManager;
+  public Stage blueBackground;
+  public Achievement studyStreak;
+  public Achievement bookWorm;
+  public Achievement eatStreak;
+  public Achievement funStreak;
+  public Achievement allNighter;
+
+  /**
+   * A class to initialise a lot of the assets required for the game, including the map, sound and
+   * UI skin. AN instance of this object should be shared to most screens to allow resources to be
+   * shared and disposed of correctly. Should be created in DesktopLauncher.
+   *
+   * @param width Width of the window
+   * @param height Height of the window
+   */
+<span class="fc" id="L44">  public HustleGame(int width, int height) {</span>
+<span class="fc" id="L45">    this.width = width;</span>
+<span class="fc" id="L46">    this.height = height;</span>
+<span class="fc" id="L47">  }</span>
+
+  /**
+   * Loads resources used throughout the game. Creates a new spritebatch Loads the UI skin to use
+   * Loads the map and configures which layers are background, foreground and object layers Loads a
+   * shape renderer for debug options Loads a sound manager to play sounds Loads credit and tutorial
+   * texts Creates a stage with a blue background for screens to use.
+   */
+  @Override
+  public void create() {
+<span class="nc" id="L57">    batch = new SpriteBatch();</span>
+<span class="nc" id="L58">    skin = new Skin(Gdx.files.internal(&quot;Interface/BlockyInterface.json&quot;));</span>
+
+    // Define background, foreground and object layers
+    // IMPORTANT: CHANGE THESE WHEN UPDATING THE LAYERS IN YOUR EXPORTED MAP FROM TILED
+    // Bottom most layer on 'layers' tab is 0
+
+<span class="nc" id="L64">    shapeRenderer = new ShapeRenderer();</span>
+<span class="nc" id="L65">    soundManager = new SoundManager();</span>
+
+    // Make a stage with a blue background that any screen can draw
+<span class="nc" id="L68">    Image blueImage = new Image(new Texture(Gdx.files.internal(&quot;Sprites/white_square.png&quot;)));</span>
+<span class="nc" id="L69">    blueImage.setColor(0.53f, 0.81f, 0.92f, 1);</span>
+<span class="nc" id="L70">    blueImage.setName(&quot;blue image&quot;);</span>
+<span class="nc" id="L71">    blueBackground = new Stage();</span>
+<span class="nc" id="L72">    blueBackground.addActor(blueImage);</span>
+
+<span class="nc" id="L74">    credits = readTextFile(&quot;Text/credits.txt&quot;);</span>
+<span class="nc" id="L75">    tutorialText = readTextFile(&quot;Text/tutorial_text.txt&quot;);</span>
+
+    // Generates all achievements
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    Predicate&lt;Integer&gt; studyStreakNo = i -&gt; (i &gt; 4);</span>
+<span class="nc" id="L79">    studyStreak = new Achievement(&quot;Serial Studier&quot;, &quot;Study 5 days in a row.&quot;, studyStreakNo);</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">    Predicate&lt;Integer&gt; studyTwiceToday = i -&gt; (i == 1);</span>
+<span class="nc" id="L82">    bookWorm = new Achievement(&quot;Bookworm&quot;, &quot;Study twice in the same day.&quot;, studyTwiceToday);</span>
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    Predicate&lt;Integer&gt; eatStreakNo = i -&gt; (i &gt; 4);</span>
+<span class="nc" id="L85">    eatStreak = new Achievement(&quot;Foodie&quot;, &quot;Eat 5 days in a row.&quot;, eatStreakNo);</span>
+
+<span class="nc bnc" id="L87" title="All 2 branches missed.">    Predicate&lt;Integer&gt; funStreakNo = i -&gt; (i &gt; 4);</span>
+<span class="nc" id="L88">    funStreak = new Achievement(&quot;Smelling the Roses&quot;, &quot;Have fun 5 days in a row.&quot;, funStreakNo);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    Predicate&lt;Integer&gt; noSleep = i -&gt; (i == 1);</span>
+<span class="nc" id="L91">    allNighter = new Achievement(&quot;The Longest Day (and Night)&quot;, &quot;Pull an all-nighter.&quot;, noSleep);</span>
+
+<span class="nc" id="L93">    this.setScreen(new MenuScreen(this));</span>
+<span class="nc" id="L94">  }</span>
+
+  /** Very important, renders the game, remove super.render() to get a black screen. */
+  @Override
+  public void render() {
+<span class="nc" id="L99">    super.render();</span>
+<span class="nc" id="L100">  }</span>
+
+  /** Disposes of elements that are loaded at the start of the game. */
+  @Override
+  public void dispose() {
+<span class="fc" id="L105">    batch.dispose();</span>
+<span class="fc" id="L106">    blueBackground.dispose();</span>
+<span class="fc" id="L107">    skin.dispose();</span>
+<span class="fc" id="L108">    shapeRenderer.dispose();</span>
+<span class="fc" id="L109">    soundManager.dispose();</span>
+<span class="fc" id="L110">  }</span>
+
+  /**
+   * Reads and returns text read from the provided text file path.
+   *
+   * @param filepath The path to the text file
+   * @return The contents of the file as a String
+   */
+  public String readTextFile(String filepath) {
+<span class="fc" id="L119">    FileHandle file = Gdx.files.internal(filepath);</span>
+
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    if (!file.exists()) {</span>
+<span class="fc" id="L122">      System.out.println(&quot;WARNING: Couldn't load file &quot; + filepath);</span>
+<span class="fc" id="L123">      return &quot;Couldn't load &quot; + filepath;</span>
+    } else {
+<span class="fc" id="L125">      return file.readString();</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>

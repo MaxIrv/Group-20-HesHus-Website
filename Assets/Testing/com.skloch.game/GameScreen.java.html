@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameScreen.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">tests</a> &gt; <a href="index.source.html" class="el_package">com.skloch.game</a> &gt; <span class="el_source">GameScreen.java</span></div><h1>GameScreen.java</h1><pre class="source lang-java linenums">package com.skloch.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.Screen;
+import com.skloch.game.events.EventBus;
+import com.skloch.game.interfaces.GameLogicInterface;
+import com.skloch.game.interfaces.GameRendererInterface;
+import com.skloch.game.interfaces.GameScreenProvider;
+import com.skloch.game.interfaces.GameUiInterface;
+import com.skloch.game.interfaces.PlayerInterface;
+
+/**
+ * Handles the majority of the game logic, rendering and user inputs of the game. Responsible for
+ * rendering the player and the map, and calling events.
+ */
+public class GameScreen implements Screen, GameScreenProvider {
+  private int studyStreakCounter;
+  private int bookWormCounter;
+  private int eatStreakCounter;
+  private int funStreakCounter;
+  private int noSleepCounter;
+
+  final HustleGame game;
+  final GameLogicInterface gameLogic;
+  final GameRendererInterface gameRenderer;
+  final GameUiInterface gameUi;
+  final GameMap gameMap;
+  final EventBus eventBus;
+  private PlayerInterface player;
+  protected InputMultiplexer inputMultiplexer;
+
+  /**
+   * Constructor for the GameScreen class. Initialises the game, player, map, renderer and UI.
+   *
+   * @param game         An instance of the class HustleGame containing variables that only need to
+   *                     be loaded or initialised once.
+   * @param avatarChoice Which avatar the player has picked, 0 for the more masculine avatar, 1 for
+   *                     the more feminine avatar.
+   */
+<span class="nc" id="L43">  public GameScreen(final HustleGame game, int avatarChoice) {</span>
+    // Important game variables
+<span class="nc" id="L45">    this.game = game;</span>
+<span class="nc" id="L46">    this.eventBus = new EventBus();</span>
+
+<span class="nc" id="L48">    this.gameMap = new GameMap();</span>
+<span class="nc" id="L49">    this.gameLogic = new GameLogic(game, this, avatarChoice, eventBus);</span>
+<span class="nc" id="L50">    this.player = gameLogic.getPlayer();</span>
+
+<span class="nc" id="L52">    this.gameUi = new GameUi(game, this, gameLogic, eventBus, this);</span>
+
+<span class="nc" id="L54">    this.gameRenderer = new GameRenderer(game, eventBus, gameMap);</span>
+
+    // USER INTERFACE
+
+    // Create and center the yes/no box that appears when interacting with objects
+    //        optionDialogue = new OptionDialogue(&quot;&quot;, 400, this.game.skin, game.soundManager);
+    //        Window optWin = optionDialogue.getWindow();
+    //        optionDialogue.setPos(
+    //                (viewport.getWorldWidth() / 2f) - (optWin.getWidth() / 2f),
+    //                (viewport.getWorldHeight() / 2f) - (optWin.getHeight() / 2f) - 150
+    //        );
+    //        // Use addActor to add windows to the scene
+    //        uiTable.addActor(optionDialogue.getWindow());
+    //        optionDialogue.setVisible(false);
+
+    // Create the keyboard input adapter that defines events to be called based on
+    // specific button presses
+<span class="nc" id="L71">    InputAdapter gameKeyBoardInput = makeInputAdapter();</span>
+
+    // Since we need to listen to inputs from the stage and from the keyboard
+    // Use an input multiplexer to listen for one inputadapter and then the other
+    // inputMultiplexer needs to be established before hand since we reference it on resume() when
+    // going
+    // back to this screen from the settings menu
+<span class="nc" id="L78">    inputMultiplexer = new InputMultiplexer();</span>
+<span class="nc" id="L79">    inputMultiplexer.addProcessor(gameKeyBoardInput);</span>
+<span class="nc" id="L80">    inputMultiplexer.addProcessor(gameUi.getUiStage());</span>
+<span class="nc" id="L81">    Gdx.input.setInputProcessor(inputMultiplexer);</span>
+
+<span class="nc" id="L83">    gameLogic.setupMap(true, gameMap);</span>
+
+<span class="nc" id="L85">    gameUi.createUi(gameRenderer.getWorldWidth(), gameRenderer.getWorldHeight());</span>
+
+<span class="nc" id="L87">    gameRenderer.initialRender();</span>
+<span class="nc" id="L88">  }</span>
+
+  @Override
+  public void show() {
+<span class="nc" id="L92">  }</span>
+
+  /**
+   * Renders the player, updates sound, renders the map and updates any UI elements Called every
+   * frame.
+   *
+   * @param delta The time in seconds since the last render.
+   */
+  @Override
+  public void render(float delta) {
+    // Set delta to a constant value to minimise stuttering issues when moving the camera and player
+    // Solution found here:
+    // https://www.reddit.com/r/libgdx/comments/5z6qaf/can_someone_help_me_understand_timestepsstuttering/
+<span class="nc" id="L105">    delta = 0.016667f;</span>
+
+<span class="nc" id="L107">    gameLogic.update(delta);</span>
+<span class="nc" id="L108">    gameRenderer.render(delta, gameLogic.getPlayer(), gameMap);</span>
+<span class="nc" id="L109">    gameUi.renderUi(delta);</span>
+
+    // Load timer bar - needs fixing and drawing
+    // TextureAtlas blueBar = new
+    // TextureAtlas(Gdx.files.internal(&quot;Interface/BlueTimeBar/BlueBar.atlas&quot;));
+    // Skin blueSkin = new Skin(blueBar);
+    // ProgressBar timeBar = new ProgressBar(0, 200, 1, false, blueSkin);
+    // timeBar.act(delta);
+
+    // Debug - Draw player hitboxes
+    //         drawHitboxes();
+
+    // Debug - print the event value of the closest object to the player if there is one
+    //        if (player.getClosestObject() != null) {
+    //            System.out.println(player.getClosestObject().get(&quot;event&quot;));
+    //        }
+<span class="nc" id="L125">  }</span>
+
+  @Override
+  public boolean isDialogueBoxVisible() {
+<span class="nc" id="L129">    return gameUi.getDialogueBox().isVisible();</span>
+  }
+
+  public boolean isEscapeMenuVisible() {
+<span class="nc" id="L133">    return gameUi.isEscapeMenuVisible();</span>
+  }
+
+  @Override
+  public boolean isPlayerNearObject() {
+<span class="nc" id="L138">    return gameLogic.isPlayerNearObject();</span>
+  }
+
+  @Override
+  public boolean isPlayerSleeping() {
+<span class="nc" id="L143">    return gameLogic.isSleeping();</span>
+  }
+
+  @Override
+  public GameObject getPlayerClosestObject() {
+<span class="nc" id="L148">    return gameLogic.getPlayerClosestObject();</span>
+  }
+
+  @Override
+  public PlayerInterface getPlayer() {
+<span class="nc" id="L153">    return player;</span>
+  }
+
+  public void blackScreenAction() {
+<span class="nc" id="L157">  }</span>
+
+  @Override
+  public GameMap getGameMap() {
+<span class="nc" id="L161">    return gameMap;</span>
+  }
+
+  @Override
+  public void resize(int width, int height) {
+<span class="nc" id="L166">    gameUi.resizeUi(width, height);</span>
+<span class="nc" id="L167">    gameRenderer.resizeViewport(width, height);</span>
+<span class="nc" id="L168">  }</span>
+
+  @Override
+  public void pause() {
+<span class="nc" id="L172">  }</span>
+
+  /**
+   * Called when switching back to this gameScreen.
+   */
+  @Override
+  public void resume() {
+    // Set the input multiplexer back to this stage
+<span class="nc" id="L180">    Gdx.input.setInputProcessor(inputMultiplexer);</span>
+
+    // I'm not sure why, but there's a small bug where exiting the settings menu doesn't make the
+    // previous
+    // button on the previous screen update, so it's stuck in the 'over' configuration until the
+    // user moves the mouse.
+    // Uncomment the below line to bring the bug back
+    // It's an issue with changing screens, and I can't figure out why it happens, but setting the
+    // mouse position
+    // to exactly where it is seems to force the stage to update itself and fixes the visual issue.
+
+<span class="nc" id="L191">    Gdx.input.setCursorPosition(Gdx.input.getX(), Gdx.input.getY());</span>
+<span class="nc" id="L192">  }</span>
+
+  @Override
+  public void hide() {
+<span class="nc" id="L196">  }</span>
+
+  /**
+   * Disposes of certain elements, called when the game is closed.
+   */
+  @Override
+  public void dispose() {
+<span class="nc" id="L203">    gameUi.dispose();</span>
+<span class="nc" id="L204">    gameRenderer.dispose();</span>
+<span class="nc" id="L205">    gameMap.dispose();</span>
+<span class="nc" id="L206">  }</span>
+
+  //  /** DEBUG - Draws the player's 3 hitboxes Uncomment use at the bottom of render to use */
+  //    public void drawHitboxes () {
+  //        game.shapeRenderer.setProjectionMatrix(camera.combined);
+  //        game.shapeRenderer.begin(ShapeType.Line);
+  //        // Sprite
+  //        game.shapeRenderer.setColor(1, 0, 0, 1);
+  //        game.shapeRenderer.rect(player.sprite.x, player.sprite.y, player.sprite.width,
+  // player.sprite.height);
+  //        // Feet hitbox
+  //        game.shapeRenderer.setColor(0, 0, 1, 1);
+  //        game.shapeRenderer.rect(player.feet.x, player.feet.y, player.feet.width,
+  // player.feet.height);
+  //        // Event hitbox
+  //        game.shapeRenderer.setColor(0, 1, 0, 1);
+  //        game.shapeRenderer.rect(player.eventHitbox.x, player.eventHitbox.y,
+  // player.eventHitbox.width, player.eventHitbox.height);
+  //        game.shapeRenderer.end();
+  //    }
+
+  // Functions related to game score and requirements
+
+  /**
+   * Generates an InputAdapter to handle game specific keyboard inputs.
+   *
+   * @return An InputAdapter for keyboard inputs
+   */
+  public InputAdapter makeInputAdapter() {
+<span class="nc" id="L235">    return new InputAdapter() {</span>
+      @Override
+      public boolean keyDown(int keycode) {
+        // SHOW ESCAPE MENU CODE
+<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (keycode == Input.Keys.ESCAPE) {</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">          if (gameUi.isEscapeMenuVisible()) {</span>
+<span class="nc" id="L241">            game.soundManager.playButton();</span>
+<span class="nc" id="L242">            game.soundManager.playOverworldMusic();</span>
+<span class="nc" id="L243">            gameUi.setEscapeMenuVisible(false);</span>
+          } else {
+            // game.soundManager.pauseOverworldMusic();
+<span class="nc" id="L246">            game.soundManager.playButton();</span>
+<span class="nc" id="L247">            gameUi.setEscapeMenuVisible(true);</span>
+          }
+          // Return true to indicate the keydown event was handled
+<span class="nc" id="L250">          return true;</span>
+        }
+
+        // SHOW OPTION MENU / ACT ON OPTION MENU CODE
+<span class="nc bnc" id="L254" title="All 6 branches missed.">        if (keycode == Input.Keys.E || keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">          if (!gameUi.isEscapeMenuVisible()) {</span>
+            // If a dialogue box is visible, choose an option or advance text
+<span class="nc bnc" id="L257" title="All 2 branches missed.">            if (gameUi.getDialogueBox().isVisible()) {</span>
+<span class="nc" id="L258">              gameUi.getDialogueBox().enter(gameLogic.getEventManager());</span>
+<span class="nc" id="L259">              game.soundManager.playButton();</span>
+
+<span class="nc bnc" id="L261" title="All 4 branches missed.">            } else if (player.nearObject() &amp;&amp; !gameLogic.isSleeping()) {</span>
+              // If the object has an event associated with it
+<span class="nc bnc" id="L263" title="All 2 branches missed.">              if (player.getClosestObject().get(&quot;event&quot;) != null) {</span>
+                // Show a dialogue menu asking if they want to do an interaction with the object
+<span class="nc" id="L265">                gameUi.getDialogueBox().show();</span>
+<span class="nc" id="L266">                gameUi</span>
+<span class="nc" id="L267">                    .getDialogueBox()</span>
+<span class="nc" id="L268">                    .getSelectBox()</span>
+<span class="nc" id="L269">                    .setOptions(</span>
+                        new String[] {&quot;Yes&quot;, &quot;No&quot;},
+<span class="nc" id="L271">                        new String[] {(String) player.getClosestObject().get(&quot;event&quot;), &quot;exit&quot;});</span>
+<span class="nc" id="L272">                if (gameLogic</span>
+<span class="nc" id="L273">                    .getEventManager()</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                    .hasCustomObjectInteraction((String) player.getClosestObject().get(&quot;event&quot;))) {</span>
+<span class="nc" id="L275">                  gameUi</span>
+<span class="nc" id="L276">                      .getDialogueBox()</span>
+<span class="nc" id="L277">                      .setText(</span>
+                          gameLogic
+<span class="nc" id="L279">                              .getEventManager()</span>
+<span class="nc" id="L280">                              .getObjectInteraction(</span>
+<span class="nc" id="L281">                                  (String) player.getClosestObject().get(&quot;event&quot;)));</span>
+                } else {
+<span class="nc" id="L283">                  gameUi</span>
+<span class="nc" id="L284">                      .getDialogueBox()</span>
+<span class="nc" id="L285">                      .setText(&quot;Interact with &quot; + player.getClosestObject().get(&quot;event&quot;) + &quot;?&quot;);</span>
+                }
+<span class="nc" id="L287">                gameUi.getDialogueBox().show();</span>
+<span class="nc" id="L288">                gameUi.getDialogueBox().getSelectBox().show();</span>
+<span class="nc" id="L289">                game.soundManager.playDialogueOpen();</span>
+
+<span class="nc bnc" id="L291" title="All 2 branches missed.">              } else if (player.getClosestObject().get(&quot;text&quot;) != null) {</span>
+                // Otherwise, if it is a text object, just display its text
+<span class="nc" id="L293">                gameUi.getDialogueBox().show();</span>
+<span class="nc" id="L294">                gameUi.getDialogueBox().setText((String) player.getClosestObject().get(&quot;text&quot;));</span>
+              }
+            }
+<span class="nc" id="L297">            return true;</span>
+          }
+        }
+
+        // If an option dialogue is open it should soak up all keypresses
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (gameUi.getDialogueBox().isVisible()</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">            &amp;&amp; gameUi.getDialogueBox().getSelectBox().isVisible()</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">            &amp;&amp; !gameUi.isEscapeMenuVisible()) {</span>
+          // Up or down
+<span class="nc bnc" id="L306" title="All 4 branches missed.">          if (keycode == Input.Keys.W || keycode == Input.Keys.UP) {</span>
+<span class="nc" id="L307">            gameUi.getDialogueBox().getSelectBox().choiceUp();</span>
+<span class="nc bnc" id="L308" title="All 4 branches missed.">          } else if (keycode == Input.Keys.S || keycode == Input.Keys.DOWN) {</span>
+<span class="nc" id="L309">            gameUi.getDialogueBox().getSelectBox().choiceDown();</span>
+          }
+
+<span class="nc" id="L312">          return true;</span>
+        }
+
+<span class="nc" id="L315">        return false;</span>
+      }
+    };
+  }
+
+  // Study Streak
+  public int getStudyStreakCounter() {
+<span class="nc" id="L322">    return this.studyStreakCounter;</span>
+  }
+
+  public void setStudyStreakCounter(int x) {
+<span class="nc" id="L326">    this.studyStreakCounter = x;</span>
+<span class="nc" id="L327">  }</span>
+
+  public void addStudyStreakCounter(int x) {
+<span class="nc" id="L330">    this.studyStreakCounter += x;</span>
+<span class="nc" id="L331">  }</span>
+
+  // Bookworm
+  public int getBookWormCounter() {
+<span class="nc" id="L335">    return this.bookWormCounter;</span>
+  }
+
+  public void setBookWormCounter(int x) {
+<span class="nc" id="L339">    this.bookWormCounter = x;</span>
+<span class="nc" id="L340">  }</span>
+
+  public void addBookWormCounter(int x) {
+<span class="nc" id="L343">    this.bookWormCounter += x;</span>
+<span class="nc" id="L344">  }</span>
+
+  // Eat Streak
+  public int getEatStreakCounter() {
+<span class="nc" id="L348">    return this.eatStreakCounter;</span>
+  }
+
+  public void setEatStreakCounter(int x) {
+<span class="nc" id="L352">    this.eatStreakCounter = x;</span>
+<span class="nc" id="L353">  }</span>
+
+  public void addEatStreakCounter(int x) {
+<span class="nc" id="L356">    this.eatStreakCounter += x;</span>
+<span class="nc" id="L357">  }</span>
+
+  // Fun Streak
+  public int getFunStreakCounter() {
+<span class="nc" id="L361">    return this.funStreakCounter;</span>
+  }
+
+  public void setFunStreakCounter(int x) {
+<span class="nc" id="L365">    this.funStreakCounter = x;</span>
+<span class="nc" id="L366">  }</span>
+
+  public void addFunStreakCounter(int x) {
+<span class="nc" id="L369">    this.funStreakCounter += x;</span>
+<span class="nc" id="L370">  }</span>
+
+  // All Nighter
+  public int getNoSleepCounter() {
+<span class="nc" id="L374">    return this.noSleepCounter;</span>
+  }
+
+  public void setNoSleepCounter(int x) {
+<span class="nc" id="L378">    this.noSleepCounter = x;</span>
+<span class="nc" id="L379">  }</span>
+
+  public void addNoSleepCounter(int x) {
+<span class="nc" id="L382">    this.noSleepCounter += x;</span>
+<span class="nc" id="L383">  }</span>
+
+  /**
+   * Ends the game, called at the end of the 7th day, switches to a screen that displays a score.
+   */
+  public void gameOver() {
+<span class="nc" id="L389">    game.setScreen(</span>
+        new GameOverScreen(
+            game,
+<span class="nc" id="L392">            gameLogic.getHoursStudied(),</span>
+<span class="nc" id="L393">            gameLogic.getHoursRecreational(),</span>
+<span class="nc" id="L394">            gameLogic.getHoursSlept(),</span>
+<span class="nc" id="L395">            gameLogic.getMealsEaten(),</span>
+<span class="nc" id="L396">            gameLogic.getPlayerScore()));</span>
+<span class="nc" id="L397">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.9.202303310957</span></div></body></html>
